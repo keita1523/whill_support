@@ -16,7 +16,7 @@ colcon build
 ![設定例](img/lan.gif) 
 
 ### **3.** パラメータ調整方法
-/src/livox_ros2_driver/launch/livox_lidar_whill_launch.pyの環境に合わせて以下の値を変更する。  
+/src/livox_ros2_driver/launch/livox_lidar_whill_launch.pyを環境に合わせて以下の値を変更する。  
 変更後再度colcon buildを行う。
 | パラメータ | 説明|
 | ---- | ---- |
@@ -24,7 +24,7 @@ colcon build
 | enable_filtering | フィルタリング及びダウンサンプリングを有効にするかの判定 |
 | filter_range_min | x方向での範囲フィルタリング最小距離 |
 | filter_range_max | x方向での範囲フィルタリング最大距離 |
-| downsample_ratio | ダウンサンプリング倍率(0~1) |
+| downsample_ratio | ダウンサンプリング倍率(0~1) 点群が安定しない場合は小さくする。　|
 
 
 ### **4.** 起動
@@ -54,10 +54,10 @@ autoware.reposを開き、  universe/autoware.universe:のversionを**whill-deve
 source ~/whill_autoware/install/setup.bash
 ros2 run livox_pointcloud livox_cloud_node
 ```
-autoware及びss systemを起動す。方法はSS_自動停止システム_報告書.pdfを参照。
+autoware及びss systemを起動する。方法はSS_自動停止システム_報告書.pdfを参照。
 
 ### **3.** livox_frame調整
-以下を送信するとrviz上にlivoxから取得した点群が表示される。値を0から変更して再送信すると、位置や向きを調整できるるのでmapの点群に合わせる。
+以下を送信するとrviz上にlivoxから取得した点群が表示される。値を0から変更して再送信すると、位置や向きを調整できるのでmapの点群に合わせる。
 ```sh
 ros2 run tf2_ros static_transform_publisher --x 0 --y 0 --z 0 --pitch 0 --roll 0 --yaw 0 --frame-id livox_frame --child-frame-id map
 ```
