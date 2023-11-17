@@ -56,8 +56,9 @@ typedef enum {
 
 class Lddc {
  public:
-  Lddc(int format, int multi_topic, int data_src, int output_type, double frq,
-       std::string &frame_id);
+  Lddc(int format, int multi_topic, int data_src, int output_type,
+        double frq, std::string &frame_id,
+        bool enable_filtering, double filter_range_min, double filter_range_max, double downsample_ratio);
   ~Lddc();
 
   int RegisterLds(Lds *lds);
@@ -102,8 +103,12 @@ class Lddc {
   uint8_t data_src_;
   uint8_t output_type_;
   double publish_frq_;
-  uint32_t publish_period_ns_;
   std::string frame_id_;
+  bool enable_filtering_;
+  double filter_range_min_;
+  double filter_range_max_;
+  double downsample_ratio_;
+  uint32_t publish_period_ns_;
 
   std::shared_ptr<rclcpp::PublisherBase>private_pub_[kMaxSourceLidar];
   std::shared_ptr<rclcpp::PublisherBase>global_pub_;

@@ -84,6 +84,10 @@ LivoxDriver::LivoxDriver(const rclcpp::NodeOptions & node_options)
   double publish_freq = 10.0; /* Hz */
   int output_type = kOutputToRos;
   std::string frame_id;
+  bool enable_filtering = false;
+  double filter_range_min = 0.0;
+  double filter_range_max = 10.0;
+  double downsample_ratio = 0.1;
 
   this->declare_parameter("xfer_format", xfer_format);
   this->declare_parameter("multi_topic", 0);
@@ -94,6 +98,10 @@ LivoxDriver::LivoxDriver(const rclcpp::NodeOptions & node_options)
   this->declare_parameter("user_config_path", "path_default");
   this->declare_parameter("cmdline_input_bd_code", "000000000000001");
   this->declare_parameter("lvx_file_path", "/home/livox/livox_test.lvx");
+  this->declare_parameter("enable_filtering", false);
+  this->declare_parameter("filter_range_min", 0.0);
+  this->declare_parameter("filter_range_max", 10.0);
+  this->declare_parameter("downsample_ratio", 0.1);
 
   this->get_parameter("xfer_format", xfer_format);
   this->get_parameter("multi_topic", multi_topic);
@@ -101,6 +109,11 @@ LivoxDriver::LivoxDriver(const rclcpp::NodeOptions & node_options)
   this->get_parameter("publish_freq", publish_freq);
   this->get_parameter("output_data_type", output_type);
   this->get_parameter("frame_id", frame_id);
+  this->get_parameter("enable_filtering", enable_filtering);
+  this->get_parameter("filter_range_min", filter_range_min);
+  this->get_parameter("filter_range_max", filter_range_max);
+  this->get_parameter("downsample_ratio", downsample_ratio);
+  
   if (publish_freq > 100.0) {
     publish_freq = 100.0;
   } else if (publish_freq < 0.1) {
@@ -113,7 +126,8 @@ LivoxDriver::LivoxDriver(const rclcpp::NodeOptions & node_options)
 
   /** Lidar data distribute control and lidar data source set */
   lddc_ptr_ =
-    std::make_unique<Lddc>(xfer_format, multi_topic, data_src, output_type, publish_freq, frame_id);
+    std::make_unique<Lddc>(xfer_format, multi_topic, data_src, output_type, publish_freq, frame_id,
+      enable_filtering, filter_range_min, filter_range_max, downsample_ratio);
   lddc_ptr_->SetRosNode(this);
 
   int ret = 0;

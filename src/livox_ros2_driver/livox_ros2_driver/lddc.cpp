@@ -38,17 +38,27 @@
 #include "lds_lidar.h"
 #include "lds_lvx.h"
 
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl/filters/passthrough.h>
+#include <pcl/filters/random_sample.h>
+
 namespace livox_ros {
 
 /** Lidar Data Distribute Control--------------------------------------------*/
 Lddc::Lddc(int format, int multi_topic, int data_src, int output_type,
-           double frq, std::string &frame_id)
+           double frq, std::string &frame_id,
+           bool enable_filtering, double filter_range_min, double filter_range_max, double downsample_ratio)
     : transfer_format_(format),
       use_multi_topic_(multi_topic),
       data_src_(data_src),
       output_type_(output_type),
       publish_frq_(frq),
-      frame_id_(frame_id) {
+      frame_id_(frame_id),
+      enable_filtering_(enable_filtering),
+      filter_range_min_(filter_range_min),
+      filter_range_max_(filter_range_max),
+      downsample_ratio_(downsample_ratio) {
   publish_period_ns_ = kNsPerSecond / publish_frq_;
   lds_ = nullptr;
 #if 0
@@ -215,7 +225,28 @@ uint32_t Lddc::PublishPointcloud2(LidarDataQueue *queue, uint32_t packet_num,
       std::dynamic_pointer_cast<rclcpp::Publisher
       <sensor_msgs::msg::PointCloud2>>(GetCurrentPublisher(handle));
   if (kOutputToRos == output_type_) {
-    publisher->publish(cloud);
+    if (enable_filtering_) {
+      pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>());
+      // x方向での範囲フィルタリング
+      pcl::PassThrough<pcl::PointXYZ> pass;
+      pcl::fromROSMsg(cloud, *cloud_filtered);
+      pass.setInputCloud(cloud_filtered);
+      pass.setFilterFieldName("x");
+      pass.setFilterLimits(filter_range_min_, filter_range_max_);
+      pass.filter(*cloud_filtered);
+
+      // 点群をランダムに半減
+      pcl::RandomSample<pcl::PointXYZ> random_sample;
+      random_sample.setInputCloud(cloud_filtered);
+      random_sample.setSample(cloud_filtered->points.size() * downsample_ratio_);
+      pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_downsampled(new pcl::PointCloud<pcl::PointXYZ>());
+      random_sample.filter(*cloud_downsampled);
+      sensor_msgs::msg::PointCloud2::SharedPtr output(new sensor_msgs::msg::PointCloud2);
+      pcl::toROSMsg(*cloud_downsampled, *output);
+      publisher->publish(*output);
+    } else {
+      publisher->publish(cloud);
+    }
   } else {
 #if 0    
     if (bag_) {
