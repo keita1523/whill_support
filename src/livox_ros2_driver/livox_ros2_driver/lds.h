@@ -311,11 +311,24 @@ inline uint32_t GetEchoNumPerPoint(uint32_t data_type) {
   return data_type_info_pair_table[data_type].echo_num;
 }
 
+inline float mapReflectivity(int livoxReflectivity) {
+    if (livoxReflectivity >= 0 && livoxReflectivity <= 150) {
+        // Map the value in the range [0, 150] to [0, 100]
+        return static_cast<float>((static_cast<double>(livoxReflectivity - 0) / (150 - 0)) * (100 - 0) + 0);
+    } else if (livoxReflectivity >= 151 && livoxReflectivity <= 255) {
+        // Map the value in the range [151, 255] to [101, 255]
+        return static_cast<float>((static_cast<double>(livoxReflectivity - 151) / (255 - 151)) * (255 - 101) + 101);
+    } else {
+        // Handle out-of-range values
+        return -1; // Or handle as appropriate for your application
+    }
+}
+
 inline void RawPointConvert(LivoxPointXyzr *dst_point, LivoxPoint *raw_point) {
   dst_point->x = raw_point->x;
   dst_point->y = raw_point->y;
   dst_point->z = raw_point->z;
-  dst_point->reflectivity = (float)raw_point->reflectivity;
+  dst_point->reflectivity = mapReflectivity(raw_point->reflectivity);
 }
 
 inline void RawPointConvert(LivoxPointXyzr *dst_point,
@@ -323,7 +336,7 @@ inline void RawPointConvert(LivoxPointXyzr *dst_point,
   dst_point->x = raw_point->x / 1000.0f;
   dst_point->y = raw_point->y / 1000.0f;
   dst_point->z = raw_point->z / 1000.0f;
-  dst_point->reflectivity = (float)raw_point->reflectivity;
+  dst_point->reflectivity = mapReflectivity(raw_point->reflectivity);
 }
 
 inline void RawPointConvert(LivoxPointXyzr *dst_point,
@@ -334,7 +347,7 @@ inline void RawPointConvert(LivoxPointXyzr *dst_point,
   dst_point->x = radius * sin(theta) * cos(phi);
   dst_point->y = radius * sin(theta) * sin(phi);
   dst_point->z = radius * cos(theta);
-  dst_point->reflectivity = (float)raw_point->reflectivity;
+  dst_point->reflectivity = mapReflectivity(raw_point->reflectivity);
 }
 
 inline void RawPointConvert(LivoxPointXyzr *dst_point1,
@@ -347,12 +360,12 @@ inline void RawPointConvert(LivoxPointXyzr *dst_point1,
   dst_point1->x = radius1 * sin(theta) * cos(phi);
   dst_point1->y = radius1 * sin(theta) * sin(phi);
   dst_point1->z = radius1 * cos(theta);
-  dst_point1->reflectivity = (float)raw_point->reflectivity1;
+  dst_point1->reflectivity = mapReflectivity(raw_point->reflectivity1);
 
   dst_point2->x = radius2 * sin(theta) * cos(phi);
   dst_point2->y = radius2 * sin(theta) * sin(phi);
   dst_point2->z = radius2 * cos(theta);
-  dst_point2->reflectivity = (float)raw_point->reflectivity2;
+  dst_point2->reflectivity = mapReflectivity(raw_point->reflectivity2);
 }
 
 inline void RawPointConvert(LivoxPointXyzr *dst_point1,
@@ -367,17 +380,17 @@ inline void RawPointConvert(LivoxPointXyzr *dst_point1,
   dst_point1->x = radius1 * sin(theta) * cos(phi);
   dst_point1->y = radius1 * sin(theta) * sin(phi);
   dst_point1->z = radius1 * cos(theta);
-  dst_point1->reflectivity = (float)raw_point->reflectivity1;
+  dst_point1->reflectivity = mapReflectivity(raw_point->reflectivity1);
 
   dst_point2->x = radius2 * sin(theta) * cos(phi);
   dst_point2->y = radius2 * sin(theta) * sin(phi);
   dst_point2->z = radius2 * cos(theta);
-  dst_point2->reflectivity = (float)raw_point->reflectivity2;
+  dst_point2->reflectivity = mapReflectivity(raw_point->reflectivity2);
 
   dst_point3->x = radius3 * sin(theta) * cos(phi);
   dst_point3->y = radius3 * sin(theta) * sin(phi);
   dst_point3->z = radius3 * cos(theta);
-  dst_point3->reflectivity = (float)raw_point->reflectivity3;
+  dst_point3->reflectivity = mapReflectivity(raw_point->reflectivity3);
 }
 
 inline bool IsTripleIntNoneZero(int32_t x, int32_t y, int32_t z) {
