@@ -43,6 +43,8 @@
 #include <pcl/filters/passthrough.h>
 #include <pcl/filters/random_sample.h>
 
+#include <ostream>
+
 namespace livox_ros {
 
 /** Lidar Data Distribute Control--------------------------------------------*/
@@ -243,6 +245,10 @@ uint32_t Lddc::PublishPointcloud2(LidarDataQueue *queue, uint32_t packet_num,
       random_sample.filter(*cloud_downsampled);
       sensor_msgs::msg::PointCloud2::SharedPtr output(new sensor_msgs::msg::PointCloud2);
       pcl::toROSMsg(*cloud_downsampled, *output);
+      auto now = std::chrono::high_resolution_clock::now();
+      auto period = std::chrono::duration_cast<std::chrono::milliseconds>(now - prev_time_).count();
+      prev_time_ = now;
+      std::cout << "points num " << cloud_downsampled->points.size() << ", period " << period << " [ms]" << std::endl;
       publisher->publish(*output);
     } else {
       publisher->publish(cloud);
@@ -610,11 +616,13 @@ void Lddc::DistributeLidarData(void) {
 
 std::shared_ptr<rclcpp::PublisherBase> Lddc::CreatePublisher(uint8_t msg_type,
     std::string &topic_name, uint32_t queue_size) {
+    auto qos = rclcpp::QoS(rclcpp::KeepLast(queue_size));
+    qos.best_effort();
     if (kPointCloud2Msg == msg_type) {
       RCLCPP_INFO(cur_node_->get_logger(),
           "%s publish use PointCloud2 format", topic_name.c_str());
       return cur_node_->create_publisher<
-          sensor_msgs::msg::PointCloud2>(topic_name, queue_size);
+          sensor_msgs::msg::PointCloud2>(topic_name, qos);
     } else if (kLivoxCustomMsg == msg_type) {
       RCLCPP_INFO(cur_node_->get_logger(),
           "%s publish use livox custom format", topic_name);

@@ -36,6 +36,8 @@
 #include "livox_interfaces/msg/custom_point.hpp"
 #include "livox_interfaces/msg/custom_msg.hpp"
 
+#include <chrono>
+
 namespace livox_ros {
 
 typedef pcl::PointCloud<pcl::PointXYZI> PointCloud;
@@ -109,6 +111,7 @@ class Lddc {
   double filter_range_max_;
   double downsample_ratio_;
   uint32_t publish_period_ns_;
+  std::chrono::high_resolution_clock::time_point prev_time_ = std::chrono::high_resolution_clock::now();
 
   std::shared_ptr<rclcpp::PublisherBase>private_pub_[kMaxSourceLidar];
   std::shared_ptr<rclcpp::PublisherBase>global_pub_;
